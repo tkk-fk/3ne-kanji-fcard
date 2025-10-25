@@ -94,19 +94,15 @@
     background:rgba(0,0,0,.12); z-index:50;
   }
   .finish.show{ display:flex; animation: fade 1200ms ease; }
-  <style>
   .finish .box{
     background: var(--card); padding: 18px 22px; border-radius: 16px; box-shadow: var(--shadow);
-    font-weight:700; font-size: 20px;
-    font-family: var(--ui-font-stack);
+    font-weight:700; font-size: 20px; font-family: var(--ui-font-stack);
   }
+
+  /* 送り仮名の色 */
+  .okuri{ color:#e11d48; font-weight:700; }
   @keyframes fade{ 0%{opacity:0} 15%{opacity:1} 85%{opacity:1} 100%{opacity:0} }
 </style>
-
-  <style>
-  .okuri{ color:#e11d48; font-weight:700; }
-</style>
-
 </head>
 <body>
   <div class="app">
@@ -149,7 +145,8 @@
     <div class="box">がんばったね😊</div>
   </div>
 
-  <script>
+<script>
+/* ---------- 表示ユーティリティ（送り仮名を赤に） ---------- */
 function formatReading(text){
   if(!text) return "";
   return text
@@ -157,10 +154,9 @@ function formatReading(text){
     .map(t => t.replace(/\(([^)]+)\)/g, '<span class="okuri">$1</span>'))
     .join("・");
 }
-</script>
 
-<script>
-/* --- 小学三年生 200字 --- */
+/* ---------- データ ---------- */
+// 小学三年生（200字）
 const KANJI_LIST = [
   "丁","世","両","主","乗","予","事","仕","他","代","住","使","係","倍","全","具","写","列","助","勉",
   "動","勝","化","区","医","去","反","取","受","号","向","君","味","命","和","品","員","商","問","坂",
@@ -174,8 +170,7 @@ const KANJI_LIST = [
   "進","遊","運","部","都","配","酒","重","鉄","銀","開","院","陽","階","集","面","題","飲","館","駅","鼻"
 ];
 
-/* 既存のよみ（必要に応じて増やしてください） */
-<script>
+// 読み（()内＝送り仮名を赤表示）
 const READINGS = {
   "丁":"ちょう・てい",
   "世":"よ・せ・せい",
@@ -378,16 +373,15 @@ const READINGS = {
   "駅":"えき",
   "鼻":"はな・び"
 };
-</script>
 
-/* 状態 */
+/* ---------- 状態 ---------- */
 let picked = [];
 let order = [];
 let idx = 0;
 let showAns = false;
 let mode = null;
 
-/* 要素参照 */
+/* ---------- 要素参照 ---------- */
 const setup = document.getElementById('setup');
 const play = document.getElementById('play');
 const qEl = document.getElementById('q');
@@ -408,10 +402,11 @@ const closeSheet = document.getElementById('closeSheet');
 
 const finish = document.getElementById('finish');
 
+/* ---------- 初期化 ---------- */
 updateStartEnable();
 setActiveButtons();
 
-/* --- UI handlers --- */
+/* ---------- ハンドラ ---------- */
 allBtn.addEventListener('click', ()=>{
   picked = [...KANJI_LIST];
   mode = 'all'; setActiveButtons(); flashPickToast(); updateStartEnable();
@@ -421,8 +416,7 @@ pickBtn.addEventListener('click', ()=>{
 });
 randomBtn.addEventListener('click', ()=>{
   picked = sampleUnique(KANJI_LIST, 20);
-  mode = 'random20';
-  setActiveButtons(); flashPickToast(); updateStartEnable();
+  mode = 'random20'; setActiveButtons(); flashPickToast(); updateStartEnable();
 });
 startBtn.addEventListener('click', ()=>{
   if(picked.length===0){ picked = [...KANJI_LIST]; mode='all'; setActiveButtons(); }
@@ -430,12 +424,10 @@ startBtn.addEventListener('click', ()=>{
 });
 backBtn.addEventListener('click', ()=>{ endAndReturn(); });
 
-/* クリックで答え→次へ */
+/* カード操作 */
 card.addEventListener('click', nextOrReveal);
 
-/* 矢印キー対応（PC）
-   → : 答え表示→次へ
-   ← : ひとつ戻る（答えは非表示に） */
+/* 矢印キー（→で答え→次へ、←で戻る） */
 window.addEventListener('keydown', (e)=>{
   if (!isPlaying()) return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') e.preventDefault();
@@ -443,7 +435,7 @@ window.addEventListener('keydown', (e)=>{
   if (e.key === 'ArrowLeft') prevOne();
 });
 
-/* --- Picker sheet --- */
+/* ---------- ピッカー ---------- */
 function openPicker(){
   if(!grid.dataset.ready){
     const frag = document.createDocumentFragment();
@@ -466,7 +458,7 @@ okBtn.addEventListener('click', ()=>{
 clearBtn.addEventListener('click', ()=>{ Array.from(grid.children).forEach(el=>el.classList.remove('on')); });
 function closePicker(){ sheet.classList.remove('show'); document.body.style.overflow=''; }
 
-/* --- Game flow --- */
+/* ---------- ゲームフロー ---------- */
 function begin(){
   order = picked.map(k => KANJI_LIST.indexOf(k)).filter(i=>i>=0);
   if(mode === 'random20'){ shuffle(order); }
@@ -497,7 +489,7 @@ function endAndReturn(){
   mode = null; setActiveButtons();
 }
 
-/* --- Helpers --- */
+/* ---------- ヘルパー ---------- */
 function setActiveButtons(){
   allBtn.classList.toggle('active', mode==='all');
   pickBtn.classList.toggle('active', mode==='pick');
