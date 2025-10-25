@@ -94,6 +94,7 @@
     background:rgba(0,0,0,.12); z-index:50;
   }
   .finish.show{ display:flex; animation: fade 1200ms ease; }
+  <style>
   .finish .box{
     background: var(--card); padding: 18px 22px; border-radius: 16px; box-shadow: var(--shadow);
     font-weight:700; font-size: 20px;
@@ -158,7 +159,7 @@ const KANJI_LIST = [
   "進","遊","運","部","都","配","酒","重","鉄","銀","開","院","陽","階","集","面","題","飲","館","駅","鼻"
 ];
 
-/* よみ（必要に応じて増やしてください） */
+/* 既存のよみ（必要に応じて増やしてください） */
 const READINGS = {
   "主":"ぬし・しゅ・おも","乗":"のる・じょう","予":"よ","事":"こと・じ","仕":"つかえる・し",
   "代":"だい・よ","住":"すむ・じゅう","使":"つかう・し","係":"かかり・けい","全":"ぜん",
@@ -170,8 +171,8 @@ const READINGS = {
   "平":"たいら・へい","幸":"しあわせ・こう","度":"ど","庭":"にわ・てい","式":"しき","役":"やく",
   "待":"まつ・たい","急":"いそぐ・きゅう","息":"いき・そく","悪":"わるい・あく","悲":"かなしい・ひ",
   "想":"そう","意":"い","感":"かん","所":"ところ・しょ","打":"うつ・だ","投":"なげる・とう",
-  "拾":"ひろう","持":"もつ・じ","指":"ゆび・さす・し","放":"はなす・ほう",
-  "旅":"たび・りょ","族":"ぞく","昔":"むかし","暑":"あつい・しょ","暗":"くらい・あん",
+  "拾":"ひろう・しゅう","持":"もつ・じ","指":"ゆび・さす・し","放":"はなす・ほう",
+  "旅":"たび・りょ","族":"ぞく","昔":"むかし・せき","暑":"あつい・しょ","暗":"くらい・あん",
   "有":"ある・ゆう","期":"き","板":"いた・はん","根":"ね・こん","植":"うえる・しょく","業":"ぎょう",
   "様":"よう・さま","横":"よこ・おう","橋":"はし・きょう","次":"つぎ・じ","歯":"は・し","死":"しぬ・し",
   "決":"きめる・けつ","油":"あぶら・ゆ","波":"なみ・は","注":"そそぐ・ちゅう","泳":"およぐ・えい",
@@ -193,12 +194,16 @@ const READINGS = {
   "重":"おもい・じゅう","鉄":"てつ","銀":"ぎん","開":"ひらく・あく・かい","院":"いん","陽":"ひ・よう",
   "階":"かい","集":"あつまる・しゅう","面":"おも・めん","題":"だい","飲":"のむ・いん","館":"やかた・かん",
   "駅":"えき","鼻":"はな・び"
+};
+
+/* ▼未設定だった30字を一括追加（上書き/補完） */
+const EXTRA_READINGS = {
   "丁":"ちょう・てい",
   "世":"よ・せ・せい",
   "両":"りょう",
   "他":"ほか・た",
   "倍":"ばい",
-  "具":"ぐ",
+  "具":"そなえる・ぐ",
   "列":"れつ",
   "勉":"べん",
   "化":"ばける・か",
@@ -210,7 +215,7 @@ const READINGS = {
   "員":"いん",
   "坂":"さか・はん",
   "央":"おう",
-  "委":"い",
+  "委":"まかせる・い",
   "局":"きょく",
   "岸":"きし・がん",
   "州":"す・しゅう",
@@ -222,17 +227,18 @@ const READINGS = {
   "服":"ふく",
   "柱":"はしら・ちゅう",
   "氷":"こおり・ひょう",
-  "由":"ゆう"
-
-<script>
+  "由":"よし・ゆ"
 };
+Object.assign(READINGS, EXTRA_READINGS);
 
+/* 状態 */
 let picked = [];
 let order = [];
 let idx = 0;
 let showAns = false;
 let mode = null;
 
+/* 要素参照 */
 const setup = document.getElementById('setup');
 const play = document.getElementById('play');
 const qEl = document.getElementById('q');
@@ -261,29 +267,24 @@ allBtn.addEventListener('click', ()=>{
   picked = [...KANJI_LIST];
   mode = 'all'; setActiveButtons(); flashPickToast(); updateStartEnable();
 });
-
 pickBtn.addEventListener('click', ()=>{
   mode = 'pick'; setActiveButtons(); openPicker();
 });
-
-/* ★ ランダム20問 */
 randomBtn.addEventListener('click', ()=>{
   picked = sampleUnique(KANJI_LIST, 20);
   mode = 'random20';
   setActiveButtons(); flashPickToast(); updateStartEnable();
 });
-
 startBtn.addEventListener('click', ()=>{
   if(picked.length===0){ picked = [...KANJI_LIST]; mode='all'; setActiveButtons(); }
   begin();
 });
-
 backBtn.addEventListener('click', ()=>{ endAndReturn(); });
 
 /* クリックで答え→次へ */
 card.addEventListener('click', nextOrReveal);
 
-/* ★ 矢印キー対応（PC）
+/* 矢印キー対応（PC）
    → : 答え表示→次へ
    ← : ひとつ戻る（答えは非表示に） */
 window.addEventListener('keydown', (e)=>{
@@ -319,7 +320,7 @@ function closePicker(){ sheet.classList.remove('show'); document.body.style.over
 /* --- Game flow --- */
 function begin(){
   order = picked.map(k => KANJI_LIST.indexOf(k)).filter(i=>i>=0);
-  if(mode === 'random20'){ shuffle(order); } // ランダム20問は出題順もランダム
+  if(mode === 'random20'){ shuffle(order); }
   idx = 0; setup.style.display = 'none'; play.style.display = 'flex'; showQuestion();
 }
 function showQuestion(){
@@ -337,7 +338,6 @@ function prevOne(){
   if(idx === 0) return;
   idx--; showQuestion();
 }
-
 function finishRound(){
   finish.classList.add('show');
   setTimeout(()=>{ finish.classList.remove('show'); endAndReturn(); }, 1200);
@@ -362,7 +362,6 @@ function flashPickToast(){
 }
 function updateStartEnable(){ startBtn.disabled = false; }
 function isPlaying(){ return play.style.display === 'flex'; }
-
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
